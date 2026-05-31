@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nitish Verma | AI Generalist & Automation Builder</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f10',
+                        surface: '#101415',
+                        surfaceContainer: '#1d2022',
+                        brandCyan: '#00dbe9',  // Neon Cyan from Stitch
+                        brandPurple: '#d0bcff', // Electric Violet/Purple from Stitch
+                        brandGreen: '#10b981',  // Emerald from original
+                    },
+                    fontFamily: {
+                        sans: ['Geist', 'Space Grotesk', 'Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Geist:wght@100;300;400;500;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- GSAP & Three.js & Lucide Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #0b0f10;
+            color: #e0e3e5;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00dbe9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d0bcff;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(16, 20, 21, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 1px 1px rgba(0, 219, 233, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 219, 233, 0.15);
+            border-color: rgba(0, 219, 233, 0.3);
+        }
+
+        /* Ambient shifting 3D Grid Overlay */
+        .grid-overlay {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            perspective: 1000px;
+            transform: rotateX(60deg) translateY(-200px);
+            height: 200vh;
+            width: 200%;
+            position: fixed;
+            top: 0;
+            left: -50%;
+            z-index: -1;
+            opacity: 0.35;
+            pointer-events: none;
+            transition: transform 0.5s ease-out;
+        }
+
+        /* Custom Cursor styling */
+        #cursor-follower {
+            width: 32px;
+            height: 32px;
+            background-color: transparent;
+            border: 1px solid rgba(0, 219, 233, 0.5);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.15s ease-out, background-color 0.3s ease, border-color 0.3s ease, width 0.3s ease, height 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            mix-blend-mode: normal;
+        }
+
+        #cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #00dbe9;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cursor-active #cursor-follower {
+            background-color: rgba(0, 219, 233, 0.15);
+            border-color: #d0bcff;
+            width: 55px;
+            height: 55px;
+            transform: translate3d(-11.5px, -11.5px, 0) scale(1.1);
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(11, 15, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Color Gradients */
+        .text-gradient-ai {
+            background: linear-gradient(135deg, #00dbe9 0%, #d0bcff 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glowing-glow {
+            box-shadow: 0 0 50px -10px rgba(0, 219, 233, 0.25);
+        }
+
+        /* Particle styling */
+        .particle {
+            position: absolute;
+            width: 2.5px;
+            height: 2.5px;
+            background: #00dbe9;
+            border-radius: 50%;
+            filter: blur(0.5px);
+            pointer-events: none;
+        }
+
+        /* Entrance Reveal animation class */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+    </style>
+</head>
+<body class="selection:bg-brandCyan selection:text-darkBg font-sans overflow-x-hidden">
+
+    <!-- 3D Neural Backdrop Canvas -->
+    <canvas id="canvas3d" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
+    
+    <!-- Shifting perspectival Grid Overlay -->
+    <div class="grid-overlay" id="grid-bg"></div>
+
+    <!-- Cinematic Scanlines -->
+    <div class="fixed inset-0 pointer-events-none scanlines z-10 opacity-15"></div>
+
+    <!-- Custom Cursor elements -->
+    <div id="cursor-follower" class="hidden md:flex"></div>
+    <div id="cursor-dot" class="hidden md:block"></div>
+
+    <!-- Smooth Page Loader Screen -->
+    <div id="loader" class="fixed inset-0 bg-darkBg z-[99999] flex flex-col items-center justify-center font-mono">
+        <div class="relative w-80 flex flex-col items-center">
+            <!-- Hexagonal Tech Logo Animation -->
+            <div class="relative w-24 h-24 mb-8">
+                <svg class="absolute inset-0 animate-spin" style="animation-duration: 4.5s;" viewBox="0 0 100 100">
+                    <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="none" stroke="#00dbe9" stroke-width="2" stroke-dasharray="15 5"/>
+                </svg>
+                <svg class="absolute inset-2 animate-spin" style="animation-duration: 2.5s; animation-direction: reverse;" viewBox="0 0 100 100">
+                    <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="none" stroke="#d0bcff" stroke-width="3" stroke-dasharray="8 4"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-brandCyan font-display font-bold text-xl tracking-wider">NV</span>
+                </div>
+            </div>
+            
+            <div class="text-xs tracking-widest text-gray-500 uppercase mb-2">Initializing Architect OS...</div>
+            <div id="loader-percent" class="text-4xl font-display font-bold text-gradient-ai tracking-tight">0%</div>
+            
+            <!-- Progress Line Bar -->
+            <div class="w-full h-[2px] bg-white/10 rounded-full mt-4 overflow-hidden relative">
+                <div id="loader-bar" class="h-full bg-gradient-to-r from-brandCyan via-brandPurple to-brandGreen w-0 transition-all duration-300 ease-out shadow-[0_0_15px_#00dbe9]"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Persistent Floating Social Cluster (Sidebar) -->
+    <div class="fixed left-6 md:left-8 top-1/2 -translate-y-1/2 rounded-full py-8 bg-surface/50 backdrop-blur-lg border border-white/5 shadow-2xl flex flex-col items-center gap-6 px-3.5 z-40">
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="https://github.com/9211nitish-glitch" target="_blank" title="GitHub"><i data-lucide="github" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="https://www.linkedin.com/in/nitish-verma-8abb20165" target="_blank" title="LinkedIn"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="mailto:nitish25@navgurukul.org" title="Email"><i data-lucide="mail" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="tel:+919654861504" title="Call"><i data-lucide="phone" class="w-4 h-4"></i></a>
+    </div>
+
+    <!-- Main Dynamic Layout Container -->
+    <div class="relative z-20 w-full">
+
+        <!-- Top Navigation -->
+        <nav class="fixed top-0 left-0 w-full z-50 bg-darkBg/60 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center transition-all duration-300">
+            <a href="#" class="flex items-center space-x-2 group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brandCyan to-brandPurple flex items-center justify-center text-darkBg font-display font-bold text-lg shadow-lg group-hover:scale-105 transition-all">
+                    NV
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-bold tracking-wider text-sm text-white group-hover:text-brandCyan transition-colors">NITISH VERMA</span>
+                    <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase">Architect of Intelligence</span>
+                </div>
+            </a>
+            
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex items-center space-x-8 font-mono text-xs tracking-wider">
+                <a href="#about" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">user</span> ABOUT</a>
+                <a href="#skills" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">psychology</span> SKILLS</a>
+                <a href="#projects" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">code</span> SELECTED WORKS</a>
+                <a href="#experience" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">history</span> JOURNEY</a>
+                <a href="#contact" class="px-5 py-2.5 bg-brandCyan text-darkBg font-bold rounded-full shadow-lg hover:shadow-brandCyan/25 hover:scale-105 transition-all magnetic-el">CONNECT</a>
+            </div>
+
+            <!-- Mobile Nav Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-brandCyan transition-colors p-2">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="fixed inset-0 z-[60] bg-darkBg/95 backdrop-blur-xl hidden flex-col justify-center items-center space-y-8 font-mono text-lg tracking-wider transition-all">
+            <button id="mobile-menu-close" class="absolute top-6 right-6 text-gray-400 hover:text-brandCyan">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <a href="#about" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">ABOUT</a>
+            <a href="#skills" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">SKILLS</a>
+            <a href="#projects" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">SELECTED WORKS</a>
+            <a href="#experience" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">JOURNEY</a>
+            <a href="#contact" class="px-6 py-3 bg-brandCyan text-darkBg font-bold rounded-full shadow-lg" onclick="toggleMobileMenu()">CONNECT</a>
+        </div>
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="relative min-h-screen flex flex-col justify-center items-center text-center px-6 pt-24 overflow-hidden">
+            <!-- Dynamic ambient spot lights -->
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-brandCyan/5 filter blur-[120px] pointer-events-none animate-pulse"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-brandPurple/5 filter blur-[120px] pointer-events-none animate-pulse" style="animation-delay: 2s"></div>
+
+            <div class="max-w-5xl w-full mx-auto relative z-10 flex flex-col items-center">
+                <!-- Status Badge -->
+                <div class="reveal inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brandCyan/20 bg-brandCyan/5 text-brandCyan font-mono text-xs mb-8 tracking-widest uppercase">
+                    <span class="w-2 h-2 rounded-full bg-brandCyan animate-ping"></span>
+                    Ready for Deployment
+                </div>
+
+                <!-- Epic Cinematic Headline -->
+                <h1 class="reveal font-display font-extrabold text-5xl md:text-8xl tracking-tight leading-none mb-6 select-none" id="hero-title">
+                    <span class="text-white block opacity-95">NITISH VERMA</span>
+                    <span class="text-gradient-ai block mt-2 text-glow">AUTOMATION BUILDER</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="reveal text-gray-400 max-w-3xl text-base md:text-xl font-mono tracking-wide leading-relaxed mb-12 delay-100">
+                    AI Generalist | Automation Builder | Full Stack Developer <br>
+                    <span class="text-sm text-gray-500 font-sans">Bridging the gap between cutting-edge Artificial Intelligence & production-ready digital architectures.</span>
+                </p>
+
+                <!-- Core Call to Actions -->
+                <div class="reveal flex flex-col sm:flex-row gap-4 justify-center items-center delay-200">
+                    <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-full bg-brandCyan text-darkBg font-bold tracking-wider hover:opacity-90 shadow-lg shadow-brandCyan/20 flex items-center justify-center gap-2 group magnetic-el">
+                        Explore Works
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="#contact" class="w-full sm:w-auto px-8 py-4 rounded-full border border-white/10 bg-white/5 backdrop-blur hover:bg-white/10 text-white font-semibold tracking-wider transition-colors flex items-center justify-center gap-2 magnetic-el">
+                        <i data-lucide="mail" class="w-5 h-5"></i> Contact Me
+                    </a>
+                </div>
+
+                <!-- Scrolling Indicator -->
+                <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce opacity-40">
+                    <span class="text-[10px] tracking-widest text-gray-500 font-mono mb-2 uppercase">SCROLL ENGINE</span>
+                    <span class="material-symbols-outlined text-brandCyan text-2xl">keyboard_double_arrow_down</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFILE / BLUEPRINT SECTION -->
+        <section id="about" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative reveal">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Content Block -->
+                <div class="lg:col-span-7 space-y-8">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="h-[1px] w-12 bg-brandCyan"></span>
+                            <span class="font-mono text-xs tracking-widest text-brandCyan uppercase">The Blueprint</span>
+                        </div>
+                        <h2 class="text-3xl md:text-5xl font-display font-bold tracking-tight text-white">
+                            Building dynamic workflows from <span class="text-gradient-ai">Idea to Execution</span>.
+                        </h2>
+                    </div>
+
+                    <p class="text-gray-400 text-lg leading-relaxed font-light">
+                        Passionate about leveraging <span class="text-white font-semibold">ChatGPT, Claude, Cursor AI</span>, and state-of-the-art automation tools to construct business systems, manage lead generation pipelines, and launch production ecosystems. Experienced at self-directed implementation inside startup-minded ventures.
+                    </p>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 pt-4">
+                        <div class="glass-card p-5 rounded-xl border-l-2 border-l-brandCyan">
+                            <h3 class="text-3xl font-display font-bold text-white mb-1">8+</h3>
+                            <p class="text-xs text-gray-500 font-mono tracking-wider uppercase">Live Deployments</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-xl border-l-2 border-l-brandPurple">
+                            <h3 class="text-3xl font-display font-bold text-white mb-1">2+</h3>
+                            <p class="text-xs text-gray-500 font-mono tracking-wider uppercase">Years Pursuing BS</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-xl border-l-2 border-l-brandGreen col-span-2 md:col-span-1">
+                            <h3 class="text-3xl font-display font-bold text-white mb-1">100%</h3>
+                            <p class="text-xs text-gray-500 font-mono tracking-wider uppercase">Hands-on Ownership</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Visual Console Block -->
+                <div class="lg:col-span-5 relative">
+                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden border border-brandCyan/10 glowing-glow">
+                        <div class="absolute top-0 right-0 p-3 bg-brandCyan/5 rounded-bl-xl text-brandCyan font-mono text-[10px]">
+                            AGENT STATUS: ACTIVE
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 mb-6">
+                            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                            <span class="text-xs text-gray-500 font-mono ml-2">system_profile_init.sh</span>
+                        </div>
+
+                        <div class="font-mono text-sm space-y-4 text-gray-400">
+                            <p class="text-brandCyan"><span class="text-gray-600">#</span> Developer Profile</p>
+                            <p><span class="text-brandPurple">NAME:</span> Nitish Verma</p>
+                            <p><span class="text-brandPurple">FOCUS:</span> AI pipelines, CRM integration, Full Stack</p>
+                            <p><span class="text-brandPurple">LOCATION:</span> Delhi NCR, India</p>
+                            <p><span class="text-brandPurple">MINDSET:</span> Highly autonomous startup developer executing with AI-assisted software practices.</p>
+                            
+                            <div class="pt-4 border-t border-white/5 flex justify-between items-center">
+                                <span class="text-xs text-brandGreen animate-pulse">● System Engaged</span>
+                                <a href="mailto:nitish25@navgurukul.org" class="text-xs bg-white/5 hover:bg-white/10 px-3.5 py-2 rounded text-white flex items-center gap-1.5 transition-colors hover-link">
+                                    <i data-lucide="mail" class="w-3.5 h-3.5"></i> Email Dev
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TECHNICAL MATRIX (SKILLS) -->
+        <section id="skills" class="py-24 px-6 md:px-12 relative reveal">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col items-center text-center mb-16 space-y-4">
+                    <div class="flex items-center gap-3 justify-center">
+                        <span class="h-[1px] w-8 bg-brandCyan"></span>
+                        <span class="font-mono text-xs tracking-widest text-brandCyan uppercase">The Stack</span>
+                        <span class="h-[1px] w-8 bg-brandCyan"></span>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-display font-bold text-white tracking-tight">
+                        Powering Innovation via modern <span class="text-gradient-ai">Tools</span>
+                    </h2>
+                    <p class="text-gray-500 font-mono max-w-xl text-xs">
+                        Equipped with high-performance frameworks and advanced automation workflows designed for scaling products.
+                    </p>
+                </div>
+
+                <!-- Bento Grid Matrix -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- AI & Automation -->
+                    <div class="glass-card p-8 rounded-2xl border border-brandCyan/10 relative overflow-hidden group">
+                        <div class="absolute -right-8 -top-8 w-24 h-24 bg-brandCyan/5 rounded-full blur-2xl group-hover:bg-brandCyan/15 transition-all"></div>
+                        <div class="w-12 h-12 rounded-xl bg-brandCyan/10 flex items-center justify-center text-brandCyan mb-6">
+                            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-4">AI & Automation</h3>
+                        <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                            Pioneering AI systems with optimal prompting methodologies, automated workflow models, and streamlined development pipelines.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">ChatGPT-4</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">Claude 3.5</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">Cursor AI</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">n8n</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">Make.com</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">Llama 3</span>
+                            <span class="px-3 py-1 bg-brandCyan/5 border border-brandCyan/10 text-brandCyan font-mono text-xs rounded-lg">Prompt Eng.</span>
+                        </div>
+                    </div>
+
+                    <!-- Development -->
+                    <div class="glass-card p-8 rounded-2xl border border-brandPurple/10 relative overflow-hidden group">
+                        <div class="absolute -right-8 -top-8 w-24 h-24 bg-brandPurple/5 rounded-full blur-2xl group-hover:bg-brandPurple/15 transition-all"></div>
+                        <div class="w-12 h-12 rounded-xl bg-brandPurple/10 flex items-center justify-center text-brandPurple mb-6">
+                            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-4">Development</h3>
+                        <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                            Creating lightweight frontend UI architectures connected with robust, secure backend servers and clean database frameworks.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">React.js</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">JavaScript</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">Node.js</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">Laravel (PHP)</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">Python</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">Flutter</span>
+                            <span class="px-3 py-1 bg-brandPurple/5 border border-brandPurple/10 text-brandPurple font-mono text-xs rounded-lg">MySQL</span>
+                        </div>
+                    </div>
+
+                    <!-- Tools & Platforms -->
+                    <div class="glass-card p-8 rounded-2xl border border-brandGreen/10 relative overflow-hidden group">
+                        <div class="absolute -right-8 -top-8 w-24 h-24 bg-brandGreen/5 rounded-full blur-2xl group-hover:bg-brandGreen/15 transition-all"></div>
+                        <div class="w-12 h-12 rounded-xl bg-brandGreen/10 flex items-center justify-center text-brandGreen mb-6">
+                            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">settings</span>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-4">Infrastructure</h3>
+                        <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                            Managing robust server deployments, continuous version control systems, containers, and web hosting platforms.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">Docker</span>
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">Git / GitHub</span>
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">AWS</span>
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">Supabase</span>
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">Plesk Panel</span>
+                            <span class="px-3 py-1 bg-brandGreen/5 border border-brandGreen/10 text-brandGreen font-mono text-xs rounded-lg">cPanel</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- PORTFOLIO PROJECTS SECTION -->
+        <section id="projects" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative reveal">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-4">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="h-[1px] w-12 bg-brandCyan"></span>
+                        <span class="font-mono text-xs tracking-widest text-brandCyan uppercase">The Gallery</span>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-display font-bold tracking-tight text-white">
+                        Products & Automated <span class="text-gradient-ai">Ecosystems</span>
+                    </h2>
+                </div>
+                <p class="text-gray-400 max-w-md font-light text-sm">
+                    A collection of production platforms, high-conversion CRMs, partner portals, and content automation structures built and deployed in real-world pipelines.
+                </p>
+            </div>
+
+            <!-- Bento Project Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                
+                <!-- Project 1: AI Auto Dialer (Large Card) -->
+                <div class="md:col-span-8 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="relative w-full aspect-video rounded-lg overflow-hidden mb-6 bg-surface-container">
+                        <!-- Holographic futuristic dashboard representation -->
+                        <img alt="AI Interface" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC11sIresHGoMm99trtrqfoiWP8fZK_kRr8rmKDNFRtG2QvtNRxNoTU6QQbxTXG4p2IC04IA-1uoOYZNbIPy4GB_0Kx5Yi37IYDUhyr7i_Q-4G1KdjiG9-jMQYOAi8uZsbtC2vIfYjX9_JnBiuoqkB1g0my9vEr5G1Yy0dKkmg5JZkGFjZzjrDjeryfXUwMKMzlbcH8LP9p4832Bd7Sp8qpeNa_F6Fml7M6WGbwGu-Iv4kvCeNBwIF0hQSzOfR4_Jl_iuXmAcuQTI8"/>
+                        <div class="absolute inset-0 bg-gradient-to-t from-darkBg/95 via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 px-2.5 py-1 rounded bg-brandCyan/20 border border-brandCyan/30 text-brandCyan text-[10px] font-mono uppercase tracking-wider">Production Focus</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-2xl font-display font-bold text-white group-hover:text-brandCyan transition-colors">AI-Powered Auto Dialer & Lead Agent</h3>
+                            <span class="material-symbols-outlined text-brandCyan text-3xl">automation</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Building a modern outbound communication system integrating seamless follow-up workflows, conversation details, dynamic lead scores, and call status history.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-brandCyan border border-brandCyan/20 bg-brandCyan/5 px-2.5 py-0.5 rounded">NodeJS</span>
+                            <span class="text-[10px] font-mono text-brandCyan border border-brandCyan/20 bg-brandCyan/5 px-2.5 py-0.5 rounded">AI Pipelines</span>
+                            <span class="text-[10px] font-mono text-brandCyan border border-brandCyan/20 bg-brandCyan/5 px-2.5 py-0.5 rounded">Lead Management</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_ai_auto_dialer.html" class="text-brandCyan flex items-center gap-1.5 hover:underline hover-link">
+                            <span class="w-2 h-2 rounded-full bg-brandCyan animate-pulse"></span> View Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <span class="text-gray-500">In Progress</span>
+                    </div>
+                </div>
+
+                <!-- Project 2: BTN Events CRM (Tall Card) -->
+                <div class="md:col-span-4 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="relative w-full aspect-square rounded-lg overflow-hidden mb-6 bg-surface-container">
+                        <img alt="Social Media Automation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHcS_tkYdeUcp9tfjyOR6LZLtyrpFIBlo6iroZl0JR0wpZK4UdTSdr-qIqyy_KKMT3gpRIIB_14xst56E0-dYgJsvt_2Wn0QyIL8A8iAueSchi5ooUC9J85reQv-_Yf6-2V5P8UFUefIZ34VJF9QR3qqbOcDcddm7x8KV517F_FylNAV56NgN-XL46nc-0fNY3t_XAet1ieU93hfniSpG3nHmwGs2nWlhxrD38hYeTgdz7FrzRplctjlhXiwqwcY0NvKJJ9BqvYIg"/>
+                        <div class="absolute inset-0 bg-gradient-to-t from-darkBg/95 via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 px-2.5 py-1 rounded bg-brandPurple/20 border border-brandPurple/30 text-brandPurple text-[10px] font-mono uppercase tracking-wider">SaaS Platform</span>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-display font-bold text-white group-hover:text-brandPurple transition-colors">AI Social Media Automation</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Engineered an intuitive hub automating social media processes. Generated templates, set calendars, and executed dynamic workflows to run publishing campaigns.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-brandPurple border border-brandPurple/20 bg-brandPurple/5 px-2.5 py-0.5 rounded">SaaS</span>
+                            <span class="text-[10px] font-mono text-brandPurple border border-brandPurple/20 bg-brandPurple/5 px-2.5 py-0.5 rounded">OpenAI API</span>
+                            <span class="text-[10px] font-mono text-brandPurple border border-brandPurple/20 bg-brandPurple/5 px-2.5 py-0.5 rounded">React</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_ai_social_media.html" class="text-brandPurple flex items-center gap-1 hover:underline hover-link">
+                            Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <a href="https://post.btnevents.in" target="_blank" class="text-gray-500 hover:text-brandPurple transition-colors hover-link">post.btnevents.in</a>
+                    </div>
+                </div>
+
+                <!-- Project 3: SurpriseVille Client Hub -->
+                <div class="md:col-span-6 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 rounded bg-brandPurple/10 border border-brandPurple/20 text-brandPurple text-[10px] font-mono uppercase tracking-wider">E-Commerce Ecosystem</span>
+                            <span class="text-gray-600 font-mono text-xs">03</span>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold text-white group-hover:text-brandPurple transition-colors">SurpriseVille Client Hub</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Custom client platform built for booking special event decorations. Streamlined query generation, client communications, and booking confirmation pipelines.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Event Tech</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Inquiry Flow</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">UX Design</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_surpriseville_client.html" class="text-brandPurple flex items-center gap-1 hover:underline hover-link">
+                            Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <a href="https://surpriseville.co.in" target="_blank" class="text-gray-500 hover:text-brandPurple transition-colors hover-link">surpriseville.co.in</a>
+                    </div>
+                </div>
+
+                <!-- Project 4: SurpriseVille Partner Portal -->
+                <div class="md:col-span-6 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 rounded bg-brandGreen/10 border border-brandGreen/20 text-brandGreen text-[10px] font-mono uppercase tracking-wider">Partner B2B Hub</span>
+                            <span class="text-gray-600 font-mono text-xs">04</span>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold text-white group-hover:text-brandGreen transition-colors">SurpriseVille Partner Portal</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            B2B ecosystem built to track vendors, maintain onboarding, manage live order tracking, and assign localized dynamic tasks cleanly.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">PHP MySQL</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">B2B Portal</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Workflows</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_surpriseville_partner.html" class="text-brandGreen flex items-center gap-1 hover:underline hover-link">
+                            Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <a href="https://partners.surpriseville.co.in" target="_blank" class="text-gray-500 hover:text-brandGreen transition-colors hover-link">partners.surpriseville.co.in</a>
+                    </div>
+                </div>
+
+                <!-- Project 5: BTN Events CRM -->
+                <div class="md:col-span-6 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 rounded bg-brandCyan/10 border border-brandCyan/20 text-brandCyan text-[10px] font-mono uppercase tracking-wider">CRM System</span>
+                            <span class="text-gray-600 font-mono text-xs">05</span>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold text-white group-hover:text-brandCyan transition-colors">BTN Events CRM</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Full-scale custom platform organizing customer paths, business interactions, task distribution lists, and deep analytical reports.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Admin Dashboard</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Reports</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Automation</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_btn_events_crm.html" class="text-brandCyan flex items-center gap-1 hover:underline hover-link">
+                            Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <a href="https://crm.btnevents.in" target="_blank" class="text-gray-500 hover:text-brandCyan transition-colors hover-link">crm.btnevents.in</a>
+                    </div>
+                </div>
+
+                <!-- Project 6: StarsFlock Referral Hub -->
+                <div class="md:col-span-6 group relative overflow-hidden glass-card rounded-xl p-6 flex flex-col justify-between magnetic-el">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 rounded bg-brandCyan/10 border border-brandCyan/20 text-brandCyan text-[10px] font-mono uppercase tracking-wider">Financial Tech</span>
+                            <span class="text-gray-600 font-mono text-xs">06</span>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold text-white group-hover:text-brandCyan transition-colors">StarsFlock Referral Hub</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Referral management engine with 5-tier financial distributions. Visualizes client trees, maintains complex earnings logs, and processes requests securely.
+                        </p>
+                        <div class="flex gap-2 flex-wrap pt-2">
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Tree Diagrams</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">JWT System</span>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white/5 px-2.5 py-0.5 rounded">Security Logic</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-white/5 mt-6 pt-4 flex justify-between items-center text-xs font-mono">
+                        <a href="case_study_starsflock.html" class="text-brandCyan flex items-center gap-1.5 hover:underline hover-link">
+                            Case Study <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                        <span class="text-gray-500">Completed Architecture</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TIMELINE & JOURNEY -->
+        <section id="experience" class="py-24 px-6 md:px-12 relative reveal">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col items-center text-center mb-16 space-y-4">
+                    <div class="flex items-center gap-3 justify-center">
+                        <span class="h-[1px] w-8 bg-brandPurple"></span>
+                        <span class="font-mono text-xs tracking-widest text-brandPurple uppercase">Journey Track</span>
+                        <span class="h-[1px] w-8 bg-brandPurple"></span>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-display font-bold text-white tracking-tight">
+                        Experience & <span class="text-gradient-ai">Milestones</span>
+                    </h2>
+                </div>
+
+                <!-- Structured Timeline -->
+                <div class="relative border-l border-white/10 ml-4 md:ml-32 space-y-12 py-8">
+                    
+                    <!-- Timeline Node 1 -->
+                    <div class="relative group">
+                        <!-- Date Indicator -->
+                        <div class="absolute -left-4 md:-left-36 top-1 text-xs font-mono text-gray-500 md:w-28 text-left md:text-right hidden sm:block">
+                            Present
+                        </div>
+                        
+                        <!-- Pulsing Timeline Node -->
+                        <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-darkBg border-2 border-brandCyan z-10 flex items-center justify-center">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brandCyan animate-ping"></span>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="glass-card p-6 rounded-xl border border-white/5 ml-6 md:ml-10 transition-all group-hover:border-brandCyan/30">
+                            <span class="text-[10px] font-mono text-brandCyan bg-brandCyan/5 px-2 py-1 rounded block w-fit mb-3 sm:hidden">Present</span>
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                                <h3 class="text-xl font-display font-bold text-white">Independent Software Engineer & Automation Lead</h3>
+                                <span class="text-xs font-mono text-brandCyan">Full Project Cycle</span>
+                            </div>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                                Orchestrating custom systems, CRM automation logic, customer platforms, and multi-tier network nodes. Implementing AI workflows via specialized tooling to slash project deployment timelines and streamline business architectures.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-xs bg-white/5 border border-white/5 px-2.5 py-1 rounded text-gray-300">Software Architecture</span>
+                                <span class="text-xs bg-white/5 border border-white/5 px-2.5 py-1 rounded text-gray-300">Deployment Coordination</span>
+                                <span class="text-xs bg-white/5 border border-white/5 px-2.5 py-1 rounded text-gray-300">AI Integration</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Node 2 -->
+                    <div class="relative group">
+                        <!-- Date Indicator -->
+                        <div class="absolute -left-4 md:-left-36 top-1 text-xs font-mono text-gray-500 md:w-28 text-left md:text-right hidden sm:block">
+                            2024 - Present
+                        </div>
+                        
+                        <!-- Pulsing Timeline Node -->
+                        <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-darkBg border-2 border-brandPurple z-10"></div>
+
+                        <!-- Card Content -->
+                        <div class="glass-card p-6 rounded-xl border border-white/5 ml-6 md:ml-10 transition-all group-hover:border-brandPurple/30">
+                            <span class="text-[10px] font-mono text-brandPurple bg-brandPurple/5 px-2 py-1 rounded block w-fit mb-3 sm:hidden">2024 - Present</span>
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                                <h3 class="text-xl font-display font-bold text-white">Bachelor's Degree</h3>
+                                <span class="text-xs font-mono text-brandPurple">2nd Year Undergraduate</span>
+                            </div>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                                Expanding technical skillsets, logical analysis, and database paradigms while actively building production-grade solutions for growing businesses.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative reveal">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brandCyan/5 rounded-full filter blur-[120px] pointer-events-none"></div>
+
+            <div class="glass-card p-8 md:p-16 rounded-3xl border border-white/5 relative overflow-hidden text-center max-w-4xl mx-auto group">
+                <div class="absolute -top-20 -right-20 w-64 h-64 bg-brandCyan/10 blur-[100px] group-hover:bg-brandCyan/20 transition-all duration-700"></div>
+                
+                <div class="relative z-10 space-y-8">
+                    <div class="flex items-center gap-3 justify-center">
+                        <span class="h-[1px] w-8 bg-brandCyan"></span>
+                        <span class="font-mono text-xs tracking-widest text-brandCyan uppercase">Deployment Pipeline</span>
+                        <span class="h-[1px] w-8 bg-brandCyan"></span>
+                    </div>
+
+                    <h2 class="text-3xl md:text-6xl font-display font-bold tracking-tight text-white leading-none">
+                        Let's automate and scale <br><span class="text-gradient-ai text-glow">Your Next Project</span>.
+                    </h2>
+
+                    <p class="text-gray-400 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+                        Currently available for development contracts, custom workflow architecture designs, and high-performance product deployments.
+                    </p>
+
+                    <!-- Profile Contact CTA buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+                        <a href="mailto:nitish25@navgurukul.org" class="w-full sm:w-auto px-8 py-4 rounded-full bg-brandCyan text-darkBg font-bold text-sm tracking-wider flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-brandCyan/20 hover:scale-105 transition-all magnetic-el">
+                            <i data-lucide="mail" class="w-4 h-4"></i> nitish25@navgurukul.org
+                        </a>
+                        <a href="tel:+919654861504" class="w-full sm:w-auto px-8 py-4 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm tracking-wider flex items-center justify-center gap-2 transition-all hover:scale-105 magnetic-el">
+                            <i data-lucide="phone" class="w-4 h-4"></i> +91 9654861504
+                        </a>
+                    </div>
+
+                    <!-- Social Channels -->
+                    <div class="flex justify-center items-center gap-8 pt-8 border-t border-white/5 max-w-md mx-auto">
+                        <a href="https://github.com/9211nitish-glitch" target="_blank" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-2 font-mono text-xs hover-link">
+                            <i data-lucide="github" class="w-4 h-4"></i> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/nitish-verma-8abb20165" target="_blank" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-2 font-mono text-xs hover-link">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i> LinkedIn
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="py-12 px-6 border-t border-white/5 bg-darkBg/90 text-center font-mono text-xs text-gray-500">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>© 2026 Nitish Verma // Architect of Intelligence.</p>
+                <div class="flex gap-4">
+                    <span class="text-[10px] tracking-widest text-brandCyan uppercase">AI Generalist</span>
+                    <span class="text-gray-700">|</span>
+                    <span class="text-[10px] tracking-widest text-brandPurple uppercase">Automation Builder</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- SCRIPTS FOR 3D BACKDROP, CURSOR, AND PARALLAX -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Mobile Menu Panel Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('hidden');
+            mobileMenu.classList.add('flex');
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.classList.remove('flex');
+        });
+
+        function toggleMobileMenu() {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.classList.remove('flex');
+        }
+
+        // Custom Cursor follower sequence
+        const cursorFollower = document.getElementById('cursor-follower');
+        const cursorDot = document.getElementById('cursor-dot');
+        let mouseX = 0, mouseY = 0;
+        let followerX = 0, followerY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Instantly position center dot
+            if (cursorDot) {
+                cursorDot.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0)`;
+            }
+        });
+
+        const renderCursor = () => {
+            // Lerp positioning for external tracking ring
+            followerX += (mouseX - followerX - 16) * 0.15;
+            followerY += (mouseY - followerY - 16) * 0.15;
+            if (cursorFollower) {
+                cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
+            }
+            requestAnimationFrame(renderCursor);
+        };
+        renderCursor();
+
+        // Cursor micro-interactions on hover targets
+        const hoverInteractives = document.querySelectorAll('a, button, .hover-link, .magnetic-el, .glass-card');
+        hoverInteractives.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('cursor-active'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-active'));
+        });
+
+        // Hero 3D Parallax & Background Interaction
+        const heroTitle = document.getElementById('hero-title');
+        const gridBg = document.getElementById('grid-bg');
+        
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) / 30;
+            const moveY = (e.clientY - window.innerHeight / 2) / 30;
+            
+            if (heroTitle) {
+                heroTitle.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+            }
+            if (gridBg) {
+                gridBg.style.transform = `rotateX(60deg) translateY(-200px) translateX(${moveX * -0.5}px)`;
+            }
+        });
+
+        // Three.js Neural Constellation Simulation
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 220;
+
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particleCount = window.innerWidth < 768 ? 150 : 380;
+        const particlesGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 550;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 550;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 550;
+
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.18,
+                y: (Math.random() - 0.5) * 0.18,
+                z: (Math.random() - 0.5) * 0.18
+            });
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        function createCircleTexture(colorStr) {
+            const canvasTex = document.createElement('canvas');
+            canvasTex.width = 16;
+            canvasTex.height = 16;
+            const ctx = canvasTex.getContext('2d');
+            const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+            grad.addColorStop(0, colorStr);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 16, 16);
+            return new THREE.CanvasTexture(canvasTex);
+        }
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 3.2,
+            map: createCircleTexture('#00dbe9'),
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const starField = new THREE.Points(particlesGeometry, particleMaterial);
+        scene.add(starField);
+
+        // Ambient Lighting Setup
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0x00dbe9, 1);
+        directionalLight.position.set(1, 1, 1).normalize();
+        scene.add(directionalLight);
+
+        let mouse3D = { x: 0, y: 0 };
+        let targetMouse3D = { x: 0, y: 0 };
+
+        document.addEventListener('mousemove', (event) => {
+            targetMouse3D.x = (event.clientX / window.innerWidth) * 2 - 1;
+            targetMouse3D.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 3D Animation Loop
+        const animate = function () {
+            requestAnimationFrame(animate);
+
+            mouse3D.x += (targetMouse3D.x - mouse3D.x) * 0.05;
+            mouse3D.y += (targetMouse3D.y - mouse3D.y) * 0.05;
+
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+            
+            starField.rotation.y = scrollPercent * 1.2 + mouse3D.x * 0.12;
+            starField.rotation.x = mouse3D.y * 0.12;
+
+            const positionsArr = starField.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+                positionsArr[i * 3] += velocities[i].x;
+                positionsArr[i * 3 + 1] += velocities[i].y;
+                positionsArr[i * 3 + 2] += velocities[i].z;
+
+                // Border rebound calculations
+                if (Math.abs(positionsArr[i * 3]) > 275) velocities[i].x *= -1;
+                if (Math.abs(positionsArr[i * 3 + 1]) > 275) velocities[i].y *= -1;
+                if (Math.abs(positionsArr[i * 3 + 2]) > 275) velocities[i].z *= -1;
+            }
+            starField.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        };
+
+        window.onload = function () {
+            animate();
+        };
+
+        // Entrance Reveal Logic (IntersectionObserver)
+        const revealElements = document.querySelectorAll('.reveal');
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+        
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Magnetic Hover Effect for CTA / highlights
+        const magneticEls = document.querySelectorAll('.magnetic-el');
+        magneticEls.forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                el.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0) scale(1.04)`;
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'translate3d(0, 0, 0) scale(1)';
+            });
+        });
+
+        // Page loader simulation countdown
+        let loadPercent = 0;
+        const percentTxt = document.getElementById('loader-percent');
+        const progressLine = document.getElementById('loader-bar');
+        const loaderScreen = document.getElementById('loader');
+
+        const loadInterval = setInterval(() => {
+            loadPercent += Math.floor(Math.random() * 8) + 3;
+            if (loadPercent >= 100) {
+                loadPercent = 100;
+                clearInterval(loadInterval);
+                
+                // Fade loader screen out
+                gsap.to(loaderScreen, {
+                    opacity: 0,
+                    duration: 0.8,
+                    delay: 0.2,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        loaderScreen.style.display = 'none';
+                        triggerEntranceAnimations();
+                    }
+                });
+            }
+            percentTxt.innerText = loadPercent + '%';
+            progressLine.style.width = loadPercent + '%';
+        }, 50);
+
+        function triggerEntranceAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Stagger hero items on entering
+            gsap.from("#hero .reveal", {
+                opacity: 0,
+                y: 40,
+                stagger: 0.15,
+                duration: 0.8,
+                ease: "power3.out"
+            });
+        }
+    </script>
+</body>
+</html>

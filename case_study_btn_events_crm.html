@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTN Events CRM Case Study | Nitish Verma Portfolio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f10',
+                        surface: '#101415',
+                        surfaceContainer: '#1d2022',
+                        brandCyan: '#00dbe9',  
+                        brandPurple: '#d0bcff', 
+                        brandGreen: '#10b981',  
+                    },
+                    fontFamily: {
+                        sans: ['Geist', 'Space Grotesk', 'Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Geist:wght@100;300;400;500;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- GSAP & Three.js & Lucide Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #0b0f10;
+            color: #e0e3e5;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00dbe9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d0bcff;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(16, 20, 21, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 1px 1px rgba(0, 219, 233, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 219, 233, 0.15);
+            border-color: rgba(0, 219, 233, 0.3);
+        }
+
+        /* Ambient shifting 3D Grid Overlay */
+        .grid-overlay {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            perspective: 1000px;
+            transform: rotateX(60deg) translateY(-200px);
+            height: 200vh;
+            width: 200%;
+            position: fixed;
+            top: 0;
+            left: -50%;
+            z-index: -1;
+            opacity: 0.35;
+            pointer-events: none;
+            transition: transform 0.5s ease-out;
+        }
+
+        /* Custom Cursor styling */
+        #cursor-follower {
+            width: 32px;
+            height: 32px;
+            background-color: transparent;
+            border: 1px solid rgba(0, 219, 233, 0.5);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.15s ease-out, background-color 0.3s ease, border-color 0.3s ease, width 0.3s ease, height 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            mix-blend-mode: normal;
+        }
+
+        #cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #00dbe9;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cursor-active #cursor-follower {
+            background-color: rgba(0, 219, 233, 0.15);
+            border-color: #d0bcff;
+            width: 55px;
+            height: 55px;
+            transform: translate3d(-11.5px, -11.5px, 0) scale(1.1);
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(11, 15, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Color Gradients */
+        .text-gradient-ai {
+            background: linear-gradient(135deg, #00dbe9 0%, #d0bcff 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glowing-glow {
+            box-shadow: 0 0 50px -10px rgba(0, 219, 233, 0.25);
+        }
+
+        /* Particle styling */
+        .particle {
+            position: absolute;
+            width: 2.5px;
+            height: 2.5px;
+            background: #00dbe9;
+            border-radius: 50%;
+            filter: blur(0.5px);
+            pointer-events: none;
+        }
+
+        /* Entrance Reveal animation class */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #hero-parallax-bg {
+            will-change: transform;
+            transform: translateY(calc(var(--parallax-y, 0) * 1px)) scale(1.15);
+            transition: transform 0.1s linear;
+        }
+    </style>
+</head>
+<body class="selection:bg-brandCyan selection:text-darkBg font-sans overflow-x-hidden">
+
+    <!-- 3D Neural Backdrop Canvas -->
+    <canvas id="canvas3d" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
+    
+    <!-- Shifting perspectival Grid Overlay -->
+    <div class="grid-overlay" id="grid-bg"></div>
+
+    <!-- Cinematic Scanlines -->
+    <div class="fixed inset-0 pointer-events-none scanlines z-10 opacity-15"></div>
+
+    <!-- Custom Cursor elements -->
+    <div id="cursor-follower" class="hidden md:flex"></div>
+    <div id="cursor-dot" class="hidden md:block"></div>
+
+    <!-- Persistent Floating Social Cluster (Sidebar) -->
+    <div class="fixed left-6 md:left-8 top-1/2 -translate-y-1/2 rounded-full py-8 bg-surface/50 backdrop-blur-lg border border-white/5 shadow-2xl flex flex-col items-center gap-6 px-3.5 z-40">
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="https://github.com/9211nitish-glitch" target="_blank" title="GitHub"><i data-lucide="github" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="https://www.linkedin.com/in/nitish-verma-8abb20165" target="_blank" title="LinkedIn"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="mailto:nitish25@navgurukul.org" title="Email"><i data-lucide="mail" class="w-4 h-4"></i></a>
+        <a class="text-gray-400 hover:text-brandCyan hover:scale-115 transition-all duration-300" href="tel:+919654861504" title="Call"><i data-lucide="phone" class="w-4 h-4"></i></a>
+    </div>
+
+    <!-- Main Dynamic Layout Container -->
+    <div class="relative z-20 w-full">
+
+        <!-- Top Navigation -->
+        <nav class="fixed top-0 left-0 w-full z-50 bg-darkBg/60 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center transition-all duration-300" id="top-nav">
+            <a href="index.html" class="flex items-center space-x-2 group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brandCyan to-brandPurple flex items-center justify-center text-darkBg font-display font-bold text-lg shadow-lg group-hover:scale-105 transition-all">
+                    NV
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-bold tracking-wider text-sm text-white group-hover:text-brandCyan transition-colors">NITISH VERMA</span>
+                    <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase">Architect of Intelligence</span>
+                </div>
+            </a>
+            
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex items-center space-x-8 font-mono text-xs tracking-wider">
+                <a href="index.html#about" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">user</span> ABOUT</a>
+                <a href="index.html#skills" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">psychology</span> SKILLS</a>
+                <a href="index.html#projects" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">code</span> SELECTED WORKS</a>
+                <a href="index.html#experience" class="text-gray-400 hover:text-brandCyan transition-colors flex items-center gap-1.5 hover-link"><span class="material-symbols-outlined text-[16px]">history</span> JOURNEY</a>
+                <a href="index.html#contact" class="px-5 py-2.5 bg-brandCyan text-darkBg font-bold rounded-full shadow-lg hover:shadow-brandCyan/25 hover:scale-105 transition-all magnetic-el">CONNECT</a>
+            </div>
+
+            <!-- Mobile Nav Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-brandCyan transition-colors p-2">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="fixed inset-0 z-[60] bg-darkBg/95 backdrop-blur-xl hidden flex-col justify-center items-center space-y-8 font-mono text-lg tracking-wider transition-all">
+            <button id="mobile-menu-close" class="absolute top-6 right-6 text-gray-400 hover:text-brandCyan">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <a href="index.html#about" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">ABOUT</a>
+            <a href="index.html#skills" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">SKILLS</a>
+            <a href="index.html#projects" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">SELECTED WORKS</a>
+            <a href="index.html#experience" class="text-gray-300 hover:text-brandCyan transition-colors" onclick="toggleMobileMenu()">JOURNEY</a>
+            <a href="index.html#contact" class="px-6 py-3 bg-brandCyan text-darkBg font-bold rounded-full shadow-lg" onclick="toggleMobileMenu()">CONNECT</a>
+        </div>
+
+        <!-- HERO CASE STUDY HEADER -->
+        <section id="hero-section" class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-darkBg/85 to-darkBg z-10"></div>
+                <div class="w-full h-full" id="hero-parallax-bg">
+                    <img alt="BTN Events CRM Layout" class="w-full h-full object-cover opacity-35" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC11sIresHGoMm99trtrqfoiWP8fZK_kRr8rmKDNFRtG2QvtNRxNoTU6QQbxTXG4p2IC04IA-1uoOYZNbIPy4GB_0Kx5Yi37IYDUhyr7i_Q-4G1KdjiG9-jMQYOAi8uZsbtC2vIfYjX9_JnBiuoqkB1g0my9vEr5G1Yy0dKkmg5JZkGFjZzjrDjeryfXUwMKMzlbcH8LP9p4832Bd7Sp8qpeNa_F6Fml7M6WGbwGu-Iv4kvCeNBwIF0hQSzOfR4_Jl_iuXmAcuQTI8"/>
+                </div>
+            </div>
+            
+            <div class="relative z-20 max-w-5xl mx-auto px-6 text-center pt-24">
+                <div class="reveal inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brandCyan/20 bg-brandCyan/5 text-brandCyan font-mono text-xs mb-6 tracking-widest uppercase">
+                    <span class="w-2 h-2 rounded-full bg-brandCyan"></span>
+                    Case Study // custom CRM
+                </div>
+                <h1 class="reveal font-display font-extrabold text-4xl md:text-7xl text-white mb-6 tracking-tighter leading-none">
+                    BTN Events <span class="text-gradient-ai text-glow">CRM Portal</span>
+                </h1>
+                <p class="reveal max-w-3xl mx-auto font-mono text-gray-400 text-sm md:text-base leading-relaxed mb-8">
+                    An operations command center organizing event customers' pathways, logging agent communications, automating task distribution, and generating reports.
+                </p>
+                <div class="reveal flex justify-center gap-8 text-xs font-mono text-gray-500">
+                    <div class="flex items-center gap-2 text-brandCyan">
+                        <span class="material-symbols-outlined text-[16px]">verified</span>
+                        <span>LIVE DEPLOYMENT</span>
+                    </div>
+                    <div class="w-px h-4 bg-white/10"></div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px]">language</span>
+                        <span>crm.btnevents.in</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE CHALLENGE SECTION -->
+        <section class="py-24 px-6 md:px-12 max-w-7xl mx-auto relative reveal">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <div class="lg:col-span-4 lg:sticky lg:top-32">
+                    <h2 class="font-display text-4xl font-bold text-brandCyan leading-tight">The Challenge</h2>
+                    <div class="mt-4 h-1 w-16 bg-brandCyan"></div>
+                </div>
+                <div class="lg:col-span-8 space-y-6 text-gray-400 text-lg leading-relaxed font-light">
+                    <p>
+                        Event management companies deal with massive influxes of inquiries daily. Tracking the history of client conversions, event details (themes, dates, location parameters), coordinator tasks, and payments in separate spreadsheets lead to heavy administrative overload and missed follow-ups.
+                    </p>
+                    <p>
+                        The goal was to design and deploy a central custom CRM that pulls data from lead channels, assigns tasks to team members automatically, logs communications, and displays detailed analytical dashboards.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-l-cyan-500">
+                            <h4 class="text-white font-bold mb-2">Lead Leakage</h4>
+                            <p class="text-sm text-gray-500">Unmanaged spreadsheet leads lost due to slow response times.</p>
+                        </div>
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-l-purple-500">
+                            <h4 class="text-white font-bold mb-2">Task Fragmentation</h4>
+                            <p class="text-sm text-gray-500">Difficulty tracking coordinator tasks and payment records in real-time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE INTELLIGENT ARCHITECTURE -->
+        <section class="py-24 px-6 md:px-12 bg-surface/30 relative reveal">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-4">
+                    <h2 class="font-display text-3xl md:text-5xl font-bold text-white">The Command <span class="text-gradient-ai">Center</span></h2>
+                    <p class="text-gray-500 font-mono text-sm">A multi-layered solution designed for scale and precision.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Client pipelines -->
+                    <div class="md:col-span-2 glass-card p-8 rounded-2xl group border border-white/5 flex flex-col justify-between">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="p-3 bg-brandCyan/10 rounded-xl text-brandCyan">
+                                <span class="material-symbols-outlined text-[32px]">admin_panel_settings</span>
+                            </div>
+                            <span class="font-mono text-gray-600 text-xs italic">01 // CRM_CORE</span>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="font-display text-2xl text-white group-hover:text-brandCyan transition-colors">Unified Client Pipeline</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">
+                                Streamlined dashboard visualising customer stages from cold inquiries to completed decor setups, complete with task triggers at each stage transition.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-6">
+                            <span class="font-mono text-[10px] text-brandCyan bg-brandCyan/5 px-2.5 py-1 rounded border border-brandCyan/10">PIPELINES</span>
+                            <span class="font-mono text-[10px] text-brandCyan bg-brandCyan/5 px-2.5 py-1 rounded border border-brandCyan/10">TASK_TRIGGERS</span>
+                            <span class="font-mono text-[10px] text-brandCyan bg-brandCyan/5 px-2.5 py-1 rounded border border-brandCyan/10">ANALYTIC_CHARTS</span>
+                        </div>
+                    </div>
+
+                    <!-- Task Distribution -->
+                    <div class="glass-card p-8 rounded-2xl group border border-white/5 flex flex-col justify-between">
+                        <div class="p-3 bg-brandPurple/10 rounded-xl text-brandPurple w-fit mb-6">
+                            <span class="material-symbols-outlined text-[32px]">checklist_rtl</span>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="font-display text-2xl text-white group-hover:text-brandPurple transition-colors">Auto Task Allocator</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">
+                                Distributes specific checklist items to coordinate vendors, setup timings, and cleanup slots automatically when orders are locked.
+                            </p>
+                        </div>
+                        <div class="pt-6">
+                            <span class="font-mono text-[10px] text-brandPurple bg-brandPurple/5 px-2.5 py-1 rounded border border-brandPurple/10">WORKFLOW_ENGINE</span>
+                        </div>
+                    </div>
+
+                    <!-- Financial checks -->
+                    <div class="glass-card p-8 rounded-2xl group border border-white/5 flex flex-col justify-between">
+                        <div class="p-3 bg-brandGreen/10 rounded-xl text-brandGreen w-fit mb-6">
+                            <span class="material-symbols-outlined text-[32px]">payments</span>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="font-display text-2xl text-white group-hover:text-brandGreen transition-colors">Payment Ledger</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">
+                                Records advance payments, outstanding balances, and automates payment reminder links pushed through WhatsApp API channels.
+                            </p>
+                        </div>
+                        <div class="pt-6">
+                            <span class="font-mono text-[10px] text-brandGreen bg-brandGreen/5 px-2.5 py-1 rounded border border-brandGreen/10">LEDGER_LOCK</span>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Layout -->
+                    <div class="md:col-span-2 glass-card p-8 rounded-2xl group border border-white/5 flex flex-col justify-between">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="p-3 bg-brandCyan/10 rounded-xl text-brandCyan">
+                                <span class="material-symbols-outlined text-[32px]">query_stats</span>
+                            </div>
+                            <h3 class="font-display text-2xl text-white">Performance Reports</h3>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="h-2 bg-brandCyan w-full rounded-full"></div>
+                            <div class="h-2 bg-brandCyan/30 w-full rounded-full"></div>
+                            <div class="h-2 bg-brandCyan/30 w-full rounded-full"></div>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Generates conversion charts per agent, total inquiries logged, and monthly booking statistics cleanly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RETURN CTA -->
+        <section class="py-32 text-center reveal">
+            <div class="max-w-2xl mx-auto px-6 space-y-8">
+                <h3 class="font-display text-3xl text-white">Project <span class="text-brandCyan">Complete.</span></h3>
+                <a class="inline-flex items-center gap-4 group magnetic-el cursor-hover" href="index.html">
+                    <span class="w-12 h-12 rounded-full border border-brandCyan/50 flex items-center justify-center text-brandCyan group-hover:bg-brandCyan group-hover:text-darkBg transition-all duration-300">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </span>
+                    <span class="text-lg font-bold tracking-tight text-white group-hover:text-brandCyan transition-colors">RETURN TO PORTFOLIO</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="py-12 px-6 border-t border-white/5 bg-darkBg/90 text-center font-mono text-xs text-gray-500">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>© 2026 Nitish Verma // Architect of Intelligence.</p>
+                <div class="flex gap-4">
+                    <span class="text-[10px] tracking-widest text-brandCyan uppercase">AI Generalist</span>
+                    <span class="text-gray-700">|</span>
+                    <span class="text-[10px] tracking-widest text-brandPurple uppercase">Automation Builder</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        lucide.createIcons();
+
+        // Mobile Menu Toggles
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('hidden');
+            mobileMenu.classList.add('flex');
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.classList.remove('flex');
+        });
+
+        function toggleMobileMenu() {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.classList.remove('flex');
+        }
+
+        // Custom Cursor follower sequence
+        const cursorFollower = document.getElementById('cursor-follower');
+        const cursorDot = document.getElementById('cursor-dot');
+        let mouseX = 0, mouseY = 0;
+        let followerX = 0, followerY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            if (cursorDot) {
+                cursorDot.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0)`;
+            }
+        });
+
+        const renderCursor = () => {
+            followerX += (mouseX - followerX - 16) * 0.15;
+            followerY += (mouseY - followerY - 16) * 0.15;
+            if (cursorFollower) {
+                cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
+            }
+            requestAnimationFrame(renderCursor);
+        };
+        renderCursor();
+
+        // Cursor hovers
+        const hoverInteractives = document.querySelectorAll('a, button, .hover-link, .magnetic-el, .glass-card, .diagram-container');
+        hoverInteractives.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('cursor-active'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-active'));
+        });
+
+        // High fidelity parallax updates on scroll
+        const heroSection = document.getElementById('hero-section');
+        const parallaxBg = document.getElementById('hero-parallax-bg');
+        const gridBg = document.getElementById('grid-bg');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!prefersReducedMotion) {
+            let isHeroVisible = false;
+            
+            const heroObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => isHeroVisible = entry.isIntersecting);
+            }, { threshold: 0 });
+            
+            if (heroSection) heroObserver.observe(heroSection);
+
+            let ticking = false;
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const scrollY = window.scrollY;
+
+                        // Hero BG Parallax
+                        if (isHeroVisible && parallaxBg) {
+                            const offset = scrollY * 0.25;
+                            parallaxBg.style.setProperty('--parallax-y', offset);
+                        }
+
+                        // Grid background shift
+                        if (gridBg) {
+                            gridBg.style.transform = `rotateX(60deg) translateY(-200px) translateY(${scrollY * 0.1}px)`;
+                        }
+
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+        }
+
+        // Three.js Neural Constellation simulation
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 220;
+
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particleCount = window.innerWidth < 768 ? 150 : 350;
+        const particlesGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 550;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 550;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 550;
+
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.15,
+                y: (Math.random() - 0.5) * 0.15,
+                z: (Math.random() - 0.5) * 0.15
+            });
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        function createCircleTexture(colorStr) {
+            const canvasTex = document.createElement('canvas');
+            canvasTex.width = 16;
+            canvasTex.height = 16;
+            const ctx = canvasTex.getContext('2d');
+            const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+            grad.addColorStop(0, colorStr);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 16, 16);
+            return new THREE.CanvasTexture(canvasTex);
+        }
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 3,
+            map: createCircleTexture('#00dbe9'),
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const starField = new THREE.Points(particlesGeometry, particleMaterial);
+        scene.add(starField);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+
+        let mouse3D = { x: 0, y: 0 };
+        let targetMouse3D = { x: 0, y: 0 };
+
+        document.addEventListener('mousemove', (event) => {
+            targetMouse3D.x = (event.clientX / window.innerWidth) * 2 - 1;
+            targetMouse3D.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const animate = function () {
+            requestAnimationFrame(animate);
+
+            mouse3D.x += (targetMouse3D.x - mouse3D.x) * 0.05;
+            mouse3D.y += (targetMouse3D.y - mouse3D.y) * 0.05;
+
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+            
+            starField.rotation.y = scrollPercent * 1.2 + mouse3D.x * 0.1;
+            starField.rotation.x = mouse3D.y * 0.1;
+
+            const positionsArr = starField.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+                positionsArr[i * 3] += velocities[i].x;
+                positionsArr[i * 3 + 1] += velocities[i].y;
+                positionsArr[i * 3 + 2] += velocities[i].z;
+
+                if (Math.abs(positionsArr[i * 3]) > 275) velocities[i].x *= -1;
+                if (Math.abs(positionsArr[i * 3 + 1]) > 275) velocities[i].y *= -1;
+                if (Math.abs(positionsArr[i * 3 + 2]) > 275) velocities[i].z *= -1;
+            }
+            starField.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        // Magnetic Hovers
+        const magneticEls = document.querySelectorAll('.magnetic-el');
+        magneticEls.forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                el.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0) scale(1.04)`;
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'translate3d(0, 0, 0) scale(1)';
+            });
+        });
+
+        // Entrance Reveal Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        const observerOptions2 = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions2);
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Header scroll scale down
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('top-nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2.5');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.add('py-4');
+                nav.classList.remove('py-2.5');
+            }
+        });
+    </script>
+</body>
+</html>
